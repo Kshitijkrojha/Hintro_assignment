@@ -1,5 +1,136 @@
 # Smart Airport Ride Pooling Backend
 
+Minimal runnable prototype implementing the assignment requirements: grouping passengers into shared rides while respecting seat/luggage constraints, detour tolerances, cancellations, concurrency handling, and dynamic pricing.
+
+Contents
+- Runnable backend (Starlette + SQLModel + SQLite)
+- Matching algorithm (greedy clustering)
+- Concurrency demo and tests
+- OpenAPI spec (`openapi.json`) and Postman collection (`postman_collection.json`)
+
+Quick start (Windows PowerShell)
+1. Create a virtualenv and install dependencies:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+```
+
+2. Initialize DB and load sample data:
+
+```powershell
+python migrate.py
+python sample_data.py
+```
+
+3. Run the server (Starlette ASGI):
+
+```powershell
+uvicorn main:app --reload
+```
+
+4. API docs
+- Swagger UI (served from included spec): http://127.0.0.1:8000/docs
+- Raw OpenAPI: http://127.0.0.1:8000/openapi.json
+- Postman: import `postman_collection.json`
+
+Run tests
+
+```powershell
+pytest -q
+```
+
+Core files
+- `main.py` — Starlette app with APIs
+- `models.py` — SQLModel models
+- `db.py` — DB engine and simple lock registry
+- `matching.py` — matching algorithm and helpers
+- `pricing.py` — pricing formula
+- `migrate.py` / `sample_data.py` — DB setup and seed data
+- `openapi.json` / `postman_collection.json` — API docs
+- `tests/test_concurrency.py` — concurrency test
+
+Design summary (deliverables)
+
+DSA approach and complexity
+- Greedy first-come-first-serve clustering. For each pending request (ordered by creation), attempt to add compatible nearby requests while respecting seat/luggage capacity and per-passenger detour tolerance.
+- Complexity: O(n^2) worst-case due to pairwise checks. Space O(n).
+
+Low Level Design (class diagram — Mermaid)
+
+```mermaid
+classDiagram
+    class User{
+        int id
+        str name
+    }
+    class RideRequest{
+        int id
+        int user_id
+        float origin_lat
+        float origin_lng
+        float dest_lat
+        float dest_lng
+        int seats_required
+        int luggage
+        float detour_tolerance_km
+        str status
+    }
+    class Ride{
+        int id
+        str driver
+        int seats_total
+        int occupancy
+        int luggage_capacity
+        str requests
+        str status
+    }
+    User "1" -- "*" RideRequest
+    RideRequest "*" -- "1" Ride : grouped_into
+```
+
+High Level Architecture (Mermaid)
+
+```mermaid
+flowchart LR
+  Client-->API[Starlette API]
+  API-->DB[(SQLite / Postgres)]
+  API-->Matcher[Matching Worker]
+  Matcher-->DB
+  subgraph ProdScale
+    API --> LB[Load Balancer]
+    LB --> AppServers[API Servers]
+    AppServers --> Queue[Redis/Kafka]
+    Queue --> Workers[Partitioned Matching Workers]
+    Workers --> Postgres[Postgres+PostGIS]
+    Cache[Redis] --> AppServers
+  end
+```
+
+Concurrency handling
+- Prototype: application-level lock (`db.get_lock("matching")`) around matching and cancellation to prevent race conditions.
+- Production: use DB transactions (SELECT FOR UPDATE), optimistic locking, or partitioned queue consumers to avoid global locks.
+
+Database schema & indexing
+- Tables: `users`, `ride_requests`, `rides` (see `models.py`).
+- Migrations: `migrate.py` creates schema for SQLite. For production use Alembic and Postgres with PostGIS.
+- Indexes (production): `ride_requests(status)`, `ride_requests(created_at)`, spatial index on origin/destination.
+
+Dynamic pricing
+- Implemented in `pricing.py`:
+  price_per_person = round((base + per_km * distance_km) * occupancy_discount * demand_factor, 2)
+  occupancy_discount = max(0.7, 1.0 - 0.05 * (occupancy - 1))
+
+Submission notes
+- All required APIs are implemented and runnable locally.
+- Concurrency is demonstrated by tests and `concurrency_demo.py`.
+- DB setup is via `migrate.py` and sample data via `sample_data.py`.
+- OpenAPI and Postman collection included.
+
+If you want me to push the repository to a remote, provide the Git remote URL and I'll push the `main` branch. Otherwise, you can push using the local git commit already created.
+# Smart Airport Ride Pooling Backend
+
 This project implements a simplified Smart Airport Ride Pooling backend using Starlette and SQLite (SQLModel).
 
 Overview

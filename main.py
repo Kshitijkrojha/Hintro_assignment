@@ -119,3 +119,45 @@ routes = [
 ]
 
 app = Starlette(debug=True, routes=routes, on_startup=[startup])
+
+
+async def openapi_spec(request):
+        # serve the included openapi.json file
+        import os, json
+        p = os.path.join(os.path.dirname(__file__), "openapi.json")
+        if not os.path.exists(p):
+                return JSONResponse({"error": "openapi.json not found"}, status_code=404)
+        with open(p, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        return JSONResponse(data)
+
+
+async def swagger_ui(request):
+        # minimal Swagger UI page loading /openapi.json from same host
+        import os
+        html = f"""
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>API Docs</title>
+        <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@4.18.0/swagger-ui.css" />
+    </head>
+    <body>
+        <div id="swagger-ui"></div>
+        <script src="https://unpkg.com/swagger-ui-dist@4.18.0/swagger-ui-bundle.js"></script>
+        <script>
+            const ui = SwaggerUIBundle({
+                url: '/openapi.json',
+                dom_id: '#swagger-ui',
+            });
+        </script>
+    </body>
+</html>
+"""
+        return JSONResponse(html, status_code=200, media_type="text/html")
+
+
+# mount docs routes
+app.add_route("/openapi.json", openapi_spec, methods=["GET"]) 
+app.add_route("/docs", swagger_ui, methods=["GET"]) 
