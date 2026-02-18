@@ -255,6 +255,27 @@ price_per_person = round(
 
 ---
 
+## Tech Stack
+
+| Layer | Technology | Version |
+|-------|-----------|---------|
+| **Language** | Python | 3.12 |
+| **Web Framework** | Starlette (ASGI) | 0.27.0 |
+| **API Server** | Uvicorn | 0.22.0 |
+| **ORM** | SQLModel (SQLAlchemy) | 0.0.8 |
+| **Database (local)** | SQLite | built-in |
+| **Database (production)** | PostgreSQL | 15 (via Docker) |
+| **Cache / Queue** | Redis | 7 (via Docker) |
+| **DB Migrations** | Alembic | ≥1.13.0 |
+| **Data Validation** | Pydantic | 1.10.12 |
+| **HTTP Client (tests)** | HTTPX | 0.24.1 |
+| **Testing** | pytest + pytest-asyncio | 7.4.0 / 0.21.0 |
+| **Geospatial** | Haversine (custom) + geopy | built-in / 2.4.0 |
+| **Containerisation** | Docker + Docker Compose | — |
+| **API Docs** | OpenAPI 3.0 + Swagger UI | — |
+
+---
+
 ## Assumptions & Limitations
 
 - Haversine straight-line distance approximates actual road distance.
