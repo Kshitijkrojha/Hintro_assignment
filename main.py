@@ -1,5 +1,5 @@
 from starlette.applications import Starlette
-from starlette.responses import JSONResponse
+from starlette.responses import JSONResponse, HTMLResponse
 from starlette.requests import Request
 from starlette.routing import Route
 from db import init_db, get_session, get_lock
@@ -133,14 +133,11 @@ async def openapi_spec(request):
 
 
 async def swagger_ui(request):
-        # minimal Swagger UI page loading /openapi.json from same host
-        import os
-        html = f"""
-<!doctype html>
+        html = """<!doctype html>
 <html>
     <head>
         <meta charset="utf-8" />
-        <title>API Docs</title>
+        <title>Smart Airport Ride Pooling – API Docs</title>
         <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@4.18.0/swagger-ui.css" />
     </head>
     <body>
@@ -150,12 +147,13 @@ async def swagger_ui(request):
             const ui = SwaggerUIBundle({
                 url: '/openapi.json',
                 dom_id: '#swagger-ui',
+                presets: [SwaggerUIBundle.presets.apis, SwaggerUIBundle.SwaggerUIStandalonePreset],
+                layout: 'BaseLayout'
             });
         </script>
     </body>
-</html>
-"""
-        return JSONResponse(html, status_code=200, media_type="text/html")
+</html>"""
+        return HTMLResponse(html)
 
 
 # mount docs routes

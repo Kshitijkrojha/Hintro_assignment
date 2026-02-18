@@ -2,31 +2,97 @@
   "info": {
     "name": "Smart Airport Ride Pooling",
     "_postman_id": "a1b2c3d4-ridepool",
-    "description": "Collection for the ride pooling prototype",
+    "description": "All 6 endpoints for the Smart Airport Ride Pooling backend prototype.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
-      "name": "Create Request",
+      "name": "1. Create Ride Request",
       "request": {
         "method": "POST",
-        "header": [
-          {"key":"Content-Type","value":"application/json"}
-        ],
+        "header": [{"key": "Content-Type", "value": "application/json"}],
         "body": {
-          "mode":"raw",
-          "raw": "{\n  \"user_id\": 1,\n  \"origin_lat\": 40.7,\n  \"origin_lng\": -73.8,\n  \"dest_lat\": 40.64,\n  \"dest_lng\": -73.78\n}"
+          "mode": "raw",
+          "raw": "{\n  \"user_id\": 1,\n  \"origin_lat\": 40.6413,\n  \"origin_lng\": -73.7781,\n  \"dest_lat\": 40.7128,\n  \"dest_lng\": -74.0059,\n  \"seats_required\": 1,\n  \"luggage\": 1,\n  \"detour_tolerance_km\": 5.0\n}"
         },
-        "url": {"raw":"http://127.0.0.1:8000/request","host":["http://127.0.0.1:8000"],"path":["request"]}
+        "url": {
+          "raw": "http://127.0.0.1:8000/request",
+          "host": ["127.0.0.1"],
+          "port": "8000",
+          "path": ["request"]
+        },
+        "description": "Create a new ride request. Returns request_id."
       }
     },
     {
-      "name": "Pending Requests",
-      "request": {"method":"GET","url":{"raw":"http://127.0.0.1:8000/requests/pending","host":["http://127.0.0.1:8000"],"path":["requests","pending"]}}
+      "name": "2. Cancel Request",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:8000/cancel/1",
+          "host": ["127.0.0.1"],
+          "port": "8000",
+          "path": ["cancel", "1"]
+        },
+        "description": "Cancel a pending ride request by its ID. Returns status=cancelled or 404."
+      }
     },
     {
-      "name": "Trigger Match",
-      "request": {"method":"POST","url":{"raw":"http://127.0.0.1:8000/match/trigger","host":["http://127.0.0.1:8000"],"path":["match","trigger"]}}
+      "name": "3. List Pending Requests",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:8000/requests/pending",
+          "host": ["127.0.0.1"],
+          "port": "8000",
+          "path": ["requests", "pending"]
+        },
+        "description": "Returns all ride requests with status=pending."
+      }
+    },
+    {
+      "name": "4. Trigger Matching",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:8000/match/trigger",
+          "host": ["127.0.0.1"],
+          "port": "8000",
+          "path": ["match", "trigger"]
+        },
+        "description": "Run the greedy matching algorithm. Groups pending requests into rides. Returns {created_rides: N}."
+      }
+    },
+    {
+      "name": "5. Get Ride Details",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:8000/rides/1",
+          "host": ["127.0.0.1"],
+          "port": "8000",
+          "path": ["rides", "1"]
+        },
+        "description": "Get details of a specific ride by ride ID. Returns 404 if not found."
+      }
+    },
+    {
+      "name": "6. Accept Ride",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:8000/rides/1/accept",
+          "host": ["127.0.0.1"],
+          "port": "8000",
+          "path": ["rides", "1", "accept"]
+        },
+        "description": "Accept a proposed ride (driver confirmation). Transitions status from proposed -> active. Returns 400 if already accepted."
+      }
     }
   ]
 }
