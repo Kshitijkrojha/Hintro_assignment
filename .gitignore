@@ -1,0 +1,9 @@
+.venv/
+ridepool.db
+*.pyc
+__pycache__/
+/.vscode/
+env/
+/.conda/
+*.egg-info
+dist/

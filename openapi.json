@@ -1,0 +1,65 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Smart Airport Ride Pooling API",
+    "version": "1.0.0",
+    "description": "Minimal OpenAPI spec for the Starlette-based ride pooling prototype."
+  },
+  "paths": {
+    "/request": {
+      "post": {
+        "summary": "Create ride request",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {"description": "request created"}
+        }
+      }
+    },
+    "/cancel/{request_id}": {
+      "post": {
+        "summary": "Cancel a request",
+        "parameters": [{"name":"request_id","in":"path","required":true,"schema":{"type":"integer"}}],
+        "responses": {"200": {"description": "cancelled"}}
+      }
+    },
+    "/match/trigger": {
+      "post": {"summary": "Trigger matching worker", "responses": {"200": {"description": "matching result"}}}
+    },
+    "/rides/{ride_id}": {
+      "get": {"summary":"Get ride","parameters":[{"name":"ride_id","in":"path","required":true,"schema":{"type":"integer"}}],"responses":{"200":{"description":"ride"}}}
+    ,
+    "/rides/{ride_id}/accept": {
+      "post": {"summary":"Accept ride","parameters":[{"name":"ride_id","in":"path","required":true,"schema":{"type":"integer"}}],"responses":{"200":{"description":"ride accepted"}}}
+    },
+    "/requests/pending": {
+      "get": {"summary":"List pending requests","responses":{"200":{"description":"list"}}}
+    }
+  },
+  "components": {
+    "schemas": {
+      "RequestCreate": {
+        "type":"object",
+        "properties":{
+          "user_id":{"type":"integer"},
+          "origin_lat":{"type":"number"},
+          "origin_lng":{"type":"number"},
+          "dest_lat":{"type":"number"},
+          "dest_lng":{"type":"number"},
+          "seats_required":{"type":"integer"},
+          "luggage":{"type":"integer"},
+          "detour_tolerance_km":{"type":"number"}
+        },
+        "required":["user_id","origin_lat","origin_lng","dest_lat","dest_lng"]
+      }
+    }
+  }
+}

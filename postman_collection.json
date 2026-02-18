@@ -1,0 +1,32 @@
+{
+  "info": {
+    "name": "Smart Airport Ride Pooling",
+    "_postman_id": "a1b2c3d4-ridepool",
+    "description": "Collection for the ride pooling prototype",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Create Request",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key":"Content-Type","value":"application/json"}
+        ],
+        "body": {
+          "mode":"raw",
+          "raw": "{\n  \"user_id\": 1,\n  \"origin_lat\": 40.7,\n  \"origin_lng\": -73.8,\n  \"dest_lat\": 40.64,\n  \"dest_lng\": -73.78\n}"
+        },
+        "url": {"raw":"http://127.0.0.1:8000/request","host":["http://127.0.0.1:8000"],"path":["request"]}
+      }
+    },
+    {
+      "name": "Pending Requests",
+      "request": {"method":"GET","url":{"raw":"http://127.0.0.1:8000/requests/pending","host":["http://127.0.0.1:8000"],"path":["requests","pending"]}}
+    },
+    {
+      "name": "Trigger Match",
+      "request": {"method":"POST","url":{"raw":"http://127.0.0.1:8000/match/trigger","host":["http://127.0.0.1:8000"],"path":["match","trigger"]}}
+    }
+  ]
+}
