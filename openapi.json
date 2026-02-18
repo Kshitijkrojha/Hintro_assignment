@@ -3,62 +3,173 @@
   "info": {
     "title": "Smart Airport Ride Pooling API",
     "version": "1.0.0",
-    "description": "Minimal OpenAPI spec for the Starlette-based ride pooling prototype."
+    "description": "OpenAPI spec for the Smart Airport Ride Pooling prototype."
   },
   "paths": {
     "/request": {
       "post": {
-        "summary": "Create ride request",
+        "summary": "Create a ride request",
+        "tags": ["Requests"],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RequestCreate"
+              "schema": { "$ref": "#/components/schemas/RequestCreate" },
+              "example": {
+                "user_id": 1,
+                "origin_lat": 40.72,
+                "origin_lng": -73.80,
+                "dest_lat": 40.64,
+                "dest_lng": -73.78,
+                "seats_required": 1,
+                "luggage": 1,
+                "detour_tolerance_km": 5.0
               }
             }
           }
         },
         "responses": {
-          "200": {"description": "request created"}
+          "200": {
+            "description": "Request created",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/RequestCreated" }
+              }
+            }
+          },
+          "400": { "description": "Missing required field" },
+          "404": { "description": "User not found" }
         }
       }
     },
     "/cancel/{request_id}": {
       "post": {
-        "summary": "Cancel a request",
-        "parameters": [{"name":"request_id","in":"path","required":true,"schema":{"type":"integer"}}],
-        "responses": {"200": {"description": "cancelled"}}
+        "summary": "Cancel a ride request",
+        "tags": ["Requests"],
+        "parameters": [
+          { "name": "request_id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": { "description": "Cancelled" },
+          "404": { "description": "Not found" }
+        }
+      }
+    },
+    "/requests/pending": {
+      "get": {
+        "summary": "List all pending requests",
+        "tags": ["Requests"],
+        "responses": {
+          "200": {
+            "description": "List of pending requests",
+            "content": {
+              "application/json": {
+                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/PendingRequest" } }
+              }
+            }
+          }
+        }
       }
     },
     "/match/trigger": {
-      "post": {"summary": "Trigger matching worker", "responses": {"200": {"description": "matching result"}}}
+      "post": {
+        "summary": "Trigger the matching worker",
+        "tags": ["Matching"],
+        "responses": {
+          "200": {
+            "description": "Matching result",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/MatchResult" }
+              }
+            }
+          }
+        }
+      }
     },
     "/rides/{ride_id}": {
-      "get": {"summary":"Get ride","parameters":[{"name":"ride_id","in":"path","required":true,"schema":{"type":"integer"}}],"responses":{"200":{"description":"ride"}}}
-    ,
-    "/rides/{ride_id}/accept": {
-      "post": {"summary":"Accept ride","parameters":[{"name":"ride_id","in":"path","required":true,"schema":{"type":"integer"}}],"responses":{"200":{"description":"ride accepted"}}}
+      "get": {
+        "summary": "Get ride details",
+        "tags": ["Rides"],
+        "parameters": [
+          { "name": "ride_id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ride details",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/RideDetail" }
+              }
+            }
+          },
+          "404": { "description": "Not found" }
+        }
+      }
     },
-    "/requests/pending": {
-      "get": {"summary":"List pending requests","responses":{"200":{"description":"list"}}}
+    "/rides/{ride_id}/accept": {
+      "post": {
+        "summary": "Accept a proposed ride",
+        "tags": ["Rides"],
+        "parameters": [
+          { "name": "ride_id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": { "description": "Ride activated" },
+          "400": { "description": "Ride not in proposed state" },
+          "404": { "description": "Not found" }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
       "RequestCreate": {
-        "type":"object",
-        "properties":{
-          "user_id":{"type":"integer"},
-          "origin_lat":{"type":"number"},
-          "origin_lng":{"type":"number"},
-          "dest_lat":{"type":"number"},
-          "dest_lng":{"type":"number"},
-          "seats_required":{"type":"integer"},
-          "luggage":{"type":"integer"},
-          "detour_tolerance_km":{"type":"number"}
-        },
-        "required":["user_id","origin_lat","origin_lng","dest_lat","dest_lng"]
+        "type": "object",
+        "required": ["user_id", "origin_lat", "origin_lng", "dest_lat", "dest_lng"],
+        "properties": {
+          "user_id": { "type": "integer" },
+          "origin_lat": { "type": "number" },
+          "origin_lng": { "type": "number" },
+          "dest_lat": { "type": "number" },
+          "dest_lng": { "type": "number" },
+          "seats_required": { "type": "integer", "default": 1 },
+          "luggage": { "type": "integer", "default": 0 },
+          "detour_tolerance_km": { "type": "number", "default": 5.0 }
+        }
+      },
+      "RequestCreated": {
+        "type": "object",
+        "properties": {
+          "request_id": { "type": "integer" }
+        }
+      },
+      "PendingRequest": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "user_id": { "type": "integer" },
+          "origin": { "type": "array", "items": { "type": "number" } },
+          "dest": { "type": "array", "items": { "type": "number" } },
+          "status": { "type": "string" }
+        }
+      },
+      "MatchResult": {
+        "type": "object",
+        "properties": {
+          "created_rides": { "type": "integer" }
+        }
+      },
+      "RideDetail": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "driver": { "type": "string" },
+          "seats_total": { "type": "integer" },
+          "occupancy": { "type": "integer" },
+          "requests": { "type": "string" },
+          "status": { "type": "string" }
+        }
       }
     }
   }

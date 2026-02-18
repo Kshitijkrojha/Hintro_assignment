@@ -1,0 +1,33 @@
+version: "3.9"
+
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://ridepool:ridepool@db:5432/ridepool
+    depends_on:
+      db:
+        condition: service_healthy
+    command: >
+      sh -c "python migrate.py && uvicorn main:app --host 0.0.0.0 --port 8000"
+
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: ridepool
+      POSTGRES_PASSWORD: ridepool
+      POSTGRES_DB: ridepool
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ridepool"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
